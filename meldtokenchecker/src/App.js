@@ -5,7 +5,7 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <h1>Meld Token Eligibility Checker</h1>
+        <h1>Meld Eligibility Checker</h1>
       </header>
       <main>
         <MeldTokenChecker />
