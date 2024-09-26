@@ -20,18 +20,39 @@ const isTelegramWebApp = () => {
 
 const MeldTokenChecker = () => {
   const [address, setAddress] = useState('');
+  const [telegramUsername, setTelegramUsername] = useState('');
+  const [telegramUserId, setTelegramUserId] = useState('');
   const [isEligible, setIsEligible] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [isWalletConnected, setIsWalletConnected] = useState(false);
   const [inviteLink, setInviteLink] = useState('');
+  const [showLink, setShowLink] = useState(false); // To control when to show the invite link
 
   useEffect(() => {
-    if (isTelegramWebApp()) {
-      window.Telegram.WebApp.ready();
-    }
+    // Inject the Telegram login script
+    const script = document.createElement('script');
+    script.src = "https://telegram.org/js/telegram-widget.js?15";
+    script.setAttribute('data-telegram-login', 'getDataForMeldBot'); // Change this to your actual bot username
+    script.setAttribute('data-size', 'large');
+    script.setAttribute('data-radius', '5');
+    script.setAttribute('data-auth-url', 'https://0xjaqbek.github.io/MeldTokenChecker/'); // Adjust this URL
+    script.setAttribute('data-onauth', 'onTelegramAuth(user)');
+    script.async = true;
+    document.getElementById('telegram-button-container').appendChild(script);
+    
+    // Make the onTelegramAuth function available globally
+    window.onTelegramAuth = (user) => {
+      if (user) {
+        setTelegramUsername(user.username);
+        setTelegramUserId(user.id);
+        console.log('Telegram Username:', user.username);
+        console.log('Telegram User ID:', user.id);
+      }
+    };
+
     checkWalletConnection();
-  }, []);
+}, []);
 
   const checkWalletConnection = async () => {
     if (typeof window.ethereum !== 'undefined') {
@@ -126,6 +147,17 @@ const MeldTokenChecker = () => {
     }
   };
 
+  const saveData = () => {
+    if (telegramUsername) {
+      console.log('Connected Wallet Address:', address);
+      console.log('Telegram Username:', telegramUsername);
+      console.log('Telegram User ID:', telegramUserId);
+      setShowLink(true); // Show the invite link after data is saved
+    } else {
+      console.log('Please enter your Telegram username.');
+    }
+  };
+
   return (
     <div className="p-4 max-w-md mx-auto">
       <h1 className="text-2xl font-bold mb-4">$MELD Token Checker</h1>
@@ -143,6 +175,10 @@ const MeldTokenChecker = () => {
           Add MELD Network
         </button>
       </div>
+
+      {/* Telegram Login Button Container */}
+      <div id="telegram-button-container" className="mb-4"></div>
+
       <input
         type="text"
         value={address}
@@ -150,6 +186,7 @@ const MeldTokenChecker = () => {
         placeholder="Enter address to check"
         className="w-full p-2 border rounded mb-4"
       />
+
       <button 
         onClick={checkEligibility}
         disabled={isLoading}
@@ -157,18 +194,35 @@ const MeldTokenChecker = () => {
       >
         {isLoading ? 'Checking...' : 'Check Eligibility'}
       </button>
+
       {error && (
         <Alert variant="destructive">
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
+
       {isEligible !== null && (
         <Alert variant={isEligible ? "default" : "destructive"}>
           <AlertDescription>
-            {isEligible ? (
+          {isEligible ? (
               <>
                 You are eligible! <br />
-                {inviteLink && (
+                {/* Show Telegram username input and Save Data button if eligible */}
+                <input
+                  type="text"
+                  value={telegramUsername}
+                  readOnly
+                  placeholder="Paste Telegram user name and click save"
+                  className="w-full p-2 border rounded mb-4"
+                />
+                <button 
+                  onClick={saveData}
+                  className="bg-orange-500 text-white px-4 py-2 rounded mb-4"
+                >
+                  Save Data
+                </button>
+                {/* Show the invite link after Save Data is clicked */}
+                {showLink && (
                   <a href={inviteLink} className="text-blue-500 underline" target="_blank" rel="noopener noreferrer">
                     Click here to join the Telegram group
                   </a>

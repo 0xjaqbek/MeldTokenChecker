@@ -1,156 +1,120 @@
-/* General page layout */
+/* Body styling for a smooth background */
 body {
-  background-color: #f9fafb; /* Light background */
-  font-family: 'Inter', sans-serif; /* Clean modern font */
-  color: #333; /* Darker text color for readability */
+  font-family: 'Inter', sans-serif;
+  background-color: #f0f4f8;
+  color: #333;
   margin: 0;
   padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
 }
 
-/* Container styles */
-.container {
-  padding: 2rem;
-  max-width: 768px;
-  margin: 0 auto;
+/* Main container styles */
+div.p-4.max-w-md.mx-auto {
   background-color: #ffffff;
-  border-radius: 10px;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  padding: 2rem;
+  margin: 1rem;
 }
 
-/* Title styles */
-h1 {
-  font-size: 2.25rem;
-  font-weight: 700;
-  color: #1a202c; /* Darker title color */
-  margin-bottom: 1.5rem;
+/* Heading styles */
+h1.text-2xl.font-bold.mb-4 {
+  color: #1a202c;
+  font-size: 24px;
+  font-weight: bold;
   text-align: center;
 }
 
 /* Button styles */
 button {
-  cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.2s ease;
+  font-size: 16px;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 button:hover {
-  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-button:active {
-  transform: translateY(0);
+/* Specific button colors */
+button.bg-blue-500 {
+  background-color: #3498db;
 }
 
-.bg-blue-500 {
-  background-color: #3182ce;
+button.bg-blue-500:hover {
+  background-color: #2980b9;
 }
 
-.bg-blue-500:hover {
-  background-color: #2b6cb0;
+button.bg-purple-500 {
+  background-color: #9b59b6;
 }
 
-.bg-purple-500 {
-  background-color: #805ad5;
+button.bg-purple-500:hover {
+  background-color: #8e44ad;
 }
 
-.bg-purple-500:hover {
-  background-color: #6b46c1;
+button.bg-green-500 {
+  background-color: #2ecc71;
 }
 
-.bg-green-500 {
-  background-color: #48bb78;
+button.bg-green-500:hover {
+  background-color: #27ae60;
 }
 
-.bg-green-500:hover {
-  background-color: #38a169;
-}
-
-.text-white {
-  color: #ffffff;
-}
-
-button[disabled] {
+button:disabled {
+  background-color: #bdc3c7;
   cursor: not-allowed;
-  opacity: 0.6;
 }
 
-/* Input styles */
-input {
-  font-size: 1rem;
-  border: 2px solid #e2e8f0; /* Light gray border */
-  border-radius: 0.375rem;
+/* Input field styling */
+input.w-full.p-2.border.rounded.mb-4 {
+  width: 100%;
   padding: 0.75rem;
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  border: 1px solid #dfe6e9;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  background-color: #ecf0f1;
+  color: #2d3436;
+  font-size: 16px;
+  transition: border 0.3s ease;
 }
 
-input:focus {
-  border-color: #3182ce; /* Border changes color on focus */
+input.w-full.p-2.border.rounded.mb-4:focus {
+  border-color: #3498db;
   outline: none;
-  box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.25); /* Soft blue focus glow */
-}
-
-input[readonly] {
-  background-color: #edf2f7;
-  cursor: not-allowed;
 }
 
 /* Alert styles */
 .alert {
   padding: 1rem;
-  border-radius: 0.375rem;
+  border-radius: 6px;
   margin-top: 1rem;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
 }
 
 .alert-default {
-  background-color: #e6fffa;
-  color: #2c7a7b;
+  background-color: #dff9fb;
+  color: #1a202c;
 }
 
 .alert-destructive {
-  background-color: #fed7d7;
-  color: #c53030;
+  background-color: #ff7979;
+  color: #ffffff;
 }
 
-.alert a {
-  font-weight: 600;
-  color: #3182ce;
+/* Link styling */
+a.text-blue-500.underline {
+  color: #3498db;
+  text-decoration: underline;
   transition: color 0.3s ease;
 }
 
-.alert a:hover {
-  color: #2b6cb0;
-}
-
-/* Additional padding and margin utilities */
-.mb-4 {
-  margin-bottom: 1rem;
-}
-
-.p-2 {
-  padding: 0.5rem;
-}
-
-.p-4 {
-  padding: 1rem;
-}
-
-.w-full {
-  width: 100%;
-}
-
-.max-w-md {
-  max-width: 28rem;
-}
-
-/* Flexbox utilities */
-.flex {
-  display: flex;
-}
-
-.gap-2 {
-  gap: 0.5rem;
-}
-
-.mx-auto {
-  margin-left: auto;
-  margin-right: auto;
+a.text-blue-500.underline:hover {
+  color: #2980b9;
 }

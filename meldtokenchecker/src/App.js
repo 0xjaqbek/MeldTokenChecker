@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import MeldTokenChecker from './components/MeldTokenChecker';
-import MELDChecker from './components/MELDChecker'; // Assuming you have a MELDChecker component
+import MELDChecker from './components/MELDchecker'; // Assuming you have a MELDChecker component
 
 function App() {
   const [selectedChecker, setSelectedChecker] = useState(null);
