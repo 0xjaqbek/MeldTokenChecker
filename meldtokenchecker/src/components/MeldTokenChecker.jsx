@@ -24,12 +24,11 @@ const MeldTokenChecker = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [isWalletConnected, setIsWalletConnected] = useState(false);
-  const [inviteLink, setInviteLink] = useState('');  // Store invite link
+  const [inviteLink, setInviteLink] = useState('');
 
   useEffect(() => {
-    // Initialize Telegram Web App
     if (isTelegramWebApp()) {
-      window.Telegram.WebApp.ready(); // Makes the web app ready inside Telegram
+      window.Telegram.WebApp.ready();
     }
     checkWalletConnection();
   }, []);
@@ -47,9 +46,14 @@ const MeldTokenChecker = () => {
   const connectWallet = async () => {
     if (typeof window.ethereum !== 'undefined') {
       try {
-        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-        setIsWalletConnected(true);
-        setAddress(accounts[0]);
+        if (isTelegramWebApp()) {
+          // Open wallet connection in external browser
+          window.Telegram.WebApp.openLink('https://metamask.app.link/dapp/' + window.location.host + window.location.pathname);
+        } else {
+          const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+          setIsWalletConnected(true);
+          setAddress(accounts[0]);
+        }
         setError('');
       } catch (err) {
         setError('Failed to connect wallet: ' + err.message);
@@ -99,22 +103,18 @@ const MeldTokenChecker = () => {
       const eligible = balance.gt(0);
       setIsEligible(eligible);
 
-      // If eligible, fetch the Telegram invite link from the server
       if (eligible) {
         try {
-          console.log('Invite Link Response:should be given');
           const response = await fetch('https://tokengate-8acc7ede28d5.herokuapp.com/generate-link');  
           if (!response.ok) {
             throw new Error('Failed to get invite link from the server');
           }
           const data = await response.json();
-          console.log('Invite Link Response:', data);
           setInviteLink(data.inviteLink);
         } catch (error) {
           setError('Error fetching invite link: ' + error.message);
         }
       }
-
     } catch (err) {
       setError('Error checking eligibility: ' + err.message);
     } finally {
