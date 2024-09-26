@@ -13,6 +13,11 @@ const minABI = [
   },
 ];
 
+// Check if running in Telegram WebApp
+const isTelegramWebApp = () => {
+  return typeof window.Telegram !== 'undefined' && window.Telegram.WebApp !== undefined;
+};
+
 const MeldTokenChecker = () => {
   const [address, setAddress] = useState('');
   const [isEligible, setIsEligible] = useState(null);
@@ -22,6 +27,10 @@ const MeldTokenChecker = () => {
   const [inviteLink, setInviteLink] = useState('');  // Store invite link
 
   useEffect(() => {
+    // Initialize Telegram Web App
+    if (isTelegramWebApp()) {
+      window.Telegram.WebApp.ready(); // Makes the web app ready inside Telegram
+    }
     checkWalletConnection();
   }, []);
 
@@ -170,6 +179,5 @@ const MeldTokenChecker = () => {
     </div>
   );
 };
-
 
 export default MeldTokenChecker;
