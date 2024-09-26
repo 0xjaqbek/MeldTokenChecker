@@ -96,11 +96,15 @@ const MeldTokenChecker = () => {
 
     try {
       const provider = new ethers.providers.JsonRpcProvider('https://subnets.avax.network/meld/mainnet/rpc');
-      const tokenAddress = '0x333000Dca02578EfE421BE77FF0aCC0F947290f0';
+      const tokenAddress = '0x333000333528b1e38884a5d1EF13615B0C17a301';  // Updated contract address
       const contract = new ethers.Contract(tokenAddress, minABI, provider);
+      
       const balance = await contract.balanceOf(address);
       
-      const eligible = balance.gt(0);
+      // Check if the balance is greater than or equal to 5,000,000 tokens
+      const requiredBalance = ethers.utils.parseUnits('5000000', 18);  // Assuming 18 decimal places
+      const eligible = balance.gte(requiredBalance);
+      
       setIsEligible(eligible);
 
       if (eligible) {
@@ -124,7 +128,7 @@ const MeldTokenChecker = () => {
 
   return (
     <div className="p-4 max-w-md mx-auto">
-      <h1 className="text-2xl font-bold mb-4">Meld Banker NFT Token Checker</h1>
+      <h1 className="text-2xl font-bold mb-4">$MELD Token Checker</h1>
       <div className="flex gap-2 mb-4">
         <button 
           onClick={connectWallet}

@@ -1,38 +1,156 @@
-.App {
+/* General page layout */
+body {
+  background-color: #f9fafb; /* Light background */
+  font-family: 'Inter', sans-serif; /* Clean modern font */
+  color: #333; /* Darker text color for readability */
+  margin: 0;
+  padding: 0;
+}
+
+/* Container styles */
+.container {
+  padding: 2rem;
+  max-width: 768px;
+  margin: 0 auto;
+  background-color: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+}
+
+/* Title styles */
+h1 {
+  font-size: 2.25rem;
+  font-weight: 700;
+  color: #1a202c; /* Darker title color */
+  margin-bottom: 1.5rem;
   text-align: center;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+/* Button styles */
+button {
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+button:hover {
+  transform: translateY(-2px);
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+button:active {
+  transform: translateY(0);
+}
+
+.bg-blue-500 {
+  background-color: #3182ce;
+}
+
+.bg-blue-500:hover {
+  background-color: #2b6cb0;
+}
+
+.bg-purple-500 {
+  background-color: #805ad5;
+}
+
+.bg-purple-500:hover {
+  background-color: #6b46c1;
+}
+
+.bg-green-500 {
+  background-color: #48bb78;
+}
+
+.bg-green-500:hover {
+  background-color: #38a169;
+}
+
+.text-white {
+  color: #ffffff;
+}
+
+button[disabled] {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Input styles */
+input {
+  font-size: 1rem;
+  border: 2px solid #e2e8f0; /* Light gray border */
+  border-radius: 0.375rem;
+  padding: 0.75rem;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+input:focus {
+  border-color: #3182ce; /* Border changes color on focus */
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.25); /* Soft blue focus glow */
+}
+
+input[readonly] {
+  background-color: #edf2f7;
+  cursor: not-allowed;
+}
+
+/* Alert styles */
+.alert {
+  padding: 1rem;
+  border-radius: 0.375rem;
+  margin-top: 1rem;
+}
+
+.alert-default {
+  background-color: #e6fffa;
+  color: #2c7a7b;
+}
+
+.alert-destructive {
+  background-color: #fed7d7;
+  color: #c53030;
+}
+
+.alert a {
+  font-weight: 600;
+  color: #3182ce;
+  transition: color 0.3s ease;
+}
+
+.alert a:hover {
+  color: #2b6cb0;
+}
+
+/* Additional padding and margin utilities */
+.mb-4 {
+  margin-bottom: 1rem;
+}
+
+.p-2 {
+  padding: 0.5rem;
+}
+
+.p-4 {
+  padding: 1rem;
+}
+
+.w-full {
+  width: 100%;
+}
+
+.max-w-md {
+  max-width: 28rem;
+}
+
+/* Flexbox utilities */
+.flex {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
 }
 
-.App-link {
-  color: #61dafb;
+.gap-2 {
+  gap: 0.5rem;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.mx-auto {
+  margin-left: auto;
+  margin-right: auto;
 }
