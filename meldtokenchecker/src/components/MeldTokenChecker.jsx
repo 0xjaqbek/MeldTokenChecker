@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { ethers } from 'ethers';
 import { Alert, AlertDescription } from "./ui/alert";
+import { db } from './firebaseConfig'; // Import your Firebase configuration
+import { collection, addDoc } from 'firebase/firestore';
 
 // ABI for ERC20 token balance checking
 const minABI = [
@@ -133,12 +135,22 @@ const MeldTokenChecker = () => {
     }
   };
 
-  const saveData = () => {
+  const saveData = async () => {
     if (telegramUsername) {
-      console.log('Connected Wallet Address:', address);
-      console.log('Telegram Username:', telegramUsername);
-      console.log('Telegram User ID:', telegramUserId);
-      setShowLink(true); // Show the invite link after data is saved
+      try {
+        // Add a new document to the "users" collection
+        await addDoc(collection(db, "users"), {
+          walletAddress: address,
+          telegramUsername: telegramUsername,
+          telegramUserId: telegramUserId,
+          timestamp: new Date()
+        });
+  
+        console.log('Data saved to Firebase!');
+        setShowLink(true); // Show the invite link after data is saved
+      } catch (error) {
+        console.error('Error saving data to Firebase:', error);
+      }
     } else {
       console.log('Please enter your Telegram username.');
     }
