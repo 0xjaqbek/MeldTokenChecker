@@ -18,7 +18,7 @@ function App() {
         </br>The app verifies user eligibility by connecting to their EVM-compatible wallet and ensuring they hold the required balance of tokens.<br>
         </br>Users can easily log in via Telegram and wallet, and if they meet the token requirements, they receive a one-time-use invite link to the group.</p>
         <h3>Choose gate:</h3>
-        <button onClick={() => handleClick('MELD')} className="flat-button">$MELD</button><br></br><br></br>
+        <button onClick={() => handleClick('MELD')} className="flat-button">$MELD</button> 
         <button onClick={() => handleClick('BankerNFT')} className="flat-button">Banker NFT</button>
       </header>
       <main>
