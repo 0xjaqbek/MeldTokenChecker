@@ -1,11 +1,41 @@
-body
-{ 
-  top: 50%;
-  left: 50%;
-  align-content: center;
-  margin: 10px;
-  font-family:   'Inter';
+body {
+  display: flex;
+  justify-content: center;   /* Centers horizontally */
+  align-items: center;       /* Centers vertically */
+  height: 100vh;             /* Full height of the viewport */
+  margin: 0;
+  font-family: 'Inter';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
+
+.App {
+  text-align: center;
+  width: 100%;
+  max-width: 600px; /* You can adjust this */
+  padding: 20px;
+}
+
+.flat-button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s ease;
+}
+
+.flat-button:hover {
+  background-color: #0056b3;
+}
+
+.flat-button:active {
+  background-color: #004080;
+}
+
+.flat-button:focus {
+  outline: none;
+}

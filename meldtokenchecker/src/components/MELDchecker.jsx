@@ -176,13 +176,13 @@ const MeldTokenChecker = () => {
       <div className="flex gap-2 mb-4">
         <button 
           onClick={connectWallet}
-          className="bg-blue-500 text-white px-4 py-2 rounded"
+          className="flat-button"
         >
           {isWalletConnected ? 'Wallet Connected' : 'Connect Wallet'}
-        </button>
+        </button><br></br><br></br>
         <button 
           onClick={addMeldNetwork}
-          className="bg-purple-500 text-white px-4 py-2 rounded"
+          className="flat-button"
         >
           Add MELD Network
         </button>
@@ -190,7 +190,7 @@ const MeldTokenChecker = () => {
 
       {/* Telegram Login Button Container */}
       <div id="telegram-button-container" className="mb-4"></div>
-
+      <br></br><br></br>
       <input
         type="text"
         value={address}
@@ -198,15 +198,15 @@ const MeldTokenChecker = () => {
         placeholder="Enter address to check"
         className="w-full p-2 border rounded mb-4"
       />
-
+<br></br><br></br>
       <button 
         onClick={checkEligibility}
         disabled={isLoading}
-        className="bg-green-500 text-white px-4 py-2 rounded mb-4"
+        className="flat-button"
       >
         {isLoading ? 'Checking...' : 'Check Eligibility'}
       </button>
-
+      <br></br>
       {error && (
         <Alert variant="destructive">
           <AlertDescription>{error}</AlertDescription>
@@ -226,13 +226,14 @@ const MeldTokenChecker = () => {
                   readOnly
                   placeholder="Paste Telegram user name and click save"
                   className="w-full p-2 border rounded mb-4"
-                />
+                /><br></br>
                 <button 
                   onClick={saveData}
-                  className="bg-orange-500 text-white px-4 py-2 rounded mb-4"
+                  className="flat-button"
                 >
                   Get invite link
                 </button>
+                <br></br>
                 {/* Show the invite link after Save Data is clicked */}
                 {showLink && (
                   <a href={inviteLink} className="text-blue-500 underline" target="_blank" rel="noopener noreferrer">
