@@ -190,7 +190,7 @@ const MeldTokenChecker = () => {
       <br></br>
       {/* Telegram Login Button Container */}
       <div id="telegram-button-container" className="mb-4"></div>
-      <br></br><br></br>
+      <br></br>
       <input
         type="text"
         value={address}
