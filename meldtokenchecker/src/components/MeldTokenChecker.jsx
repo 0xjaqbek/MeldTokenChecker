@@ -158,14 +158,14 @@ const MeldTokenChecker = () => {
 
   return (
     <div className="p-4 max-w-md mx-auto">
-      <h1 className="text-2xl font-bold mb-4">Meld Banker NFT Token Checker</h1>
+      <h1 className="text-2xl font-bold mb-4">Meld Banker NFT Token Checker</h1><h2>You must hold at least 1 MELD Banker NFT</h2>
       <div className="flex gap-2 mb-4">
         <button 
           onClick={connectWallet}
           className="bg-blue-500 text-white px-4 py-2 rounded"
         >
           {isWalletConnected ? 'Wallet Connected' : 'Connect Wallet'}
-        </button>
+        </button><br></br>
         <button 
           onClick={addMeldNetwork}
           className="bg-purple-500 text-white px-4 py-2 rounded"
@@ -217,7 +217,7 @@ const MeldTokenChecker = () => {
                   onClick={saveData}
                   className="bg-orange-500 text-white px-4 py-2 rounded mb-4"
                 >
-                  Save Data
+                  Get invite link
                 </button>
                 {/* Show the invite link after Save Data is clicked */}
                 {showLink && (

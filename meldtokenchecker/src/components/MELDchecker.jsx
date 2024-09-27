@@ -172,7 +172,7 @@ const MeldTokenChecker = () => {
 
   return (
     <div className="p-4 max-w-md mx-auto">
-      <h1 className="text-2xl font-bold mb-4">$MELD Token Checker</h1>
+      <h1 className="text-2xl font-bold mb-4">$MELD Token Checker</h1><h2>You must hold at least 5,000,000</h2>
       <div className="flex gap-2 mb-4">
         <button 
           onClick={connectWallet}
@@ -231,7 +231,7 @@ const MeldTokenChecker = () => {
                   onClick={saveData}
                   className="bg-orange-500 text-white px-4 py-2 rounded mb-4"
                 >
-                  Save Data
+                  Get invite link
                 </button>
                 {/* Show the invite link after Save Data is clicked */}
                 {showLink && (
