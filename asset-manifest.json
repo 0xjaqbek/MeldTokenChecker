@@ -1,15 +1,15 @@
 {
   "files": {
-    "main.css": "/MeldTokenChecker/static/css/main.92c8d4eb.css",
-    "main.js": "/MeldTokenChecker/static/js/main.d1dee7d0.js",
+    "main.css": "/MeldTokenChecker/static/css/main.d42d9a17.css",
+    "main.js": "/MeldTokenChecker/static/js/main.ff41a531.js",
     "static/js/453.d872d449.chunk.js": "/MeldTokenChecker/static/js/453.d872d449.chunk.js",
     "index.html": "/MeldTokenChecker/index.html",
-    "main.92c8d4eb.css.map": "/MeldTokenChecker/static/css/main.92c8d4eb.css.map",
-    "main.d1dee7d0.js.map": "/MeldTokenChecker/static/js/main.d1dee7d0.js.map",
+    "main.d42d9a17.css.map": "/MeldTokenChecker/static/css/main.d42d9a17.css.map",
+    "main.ff41a531.js.map": "/MeldTokenChecker/static/js/main.ff41a531.js.map",
     "453.d872d449.chunk.js.map": "/MeldTokenChecker/static/js/453.d872d449.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.92c8d4eb.css",
-    "static/js/main.d1dee7d0.js"
+    "static/css/main.d42d9a17.css",
+    "static/js/main.ff41a531.js"
   ]
 }
