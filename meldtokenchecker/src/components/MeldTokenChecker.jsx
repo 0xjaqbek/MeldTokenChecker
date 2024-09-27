@@ -158,7 +158,7 @@ const MeldTokenChecker = () => {
 
   return (
     <div className="p-4 max-w-md mx-auto">
-      <h1 className="text-2xl font-bold mb-4">Meld Banker NFT Token Checker</h1><h2>You must hold at least 1 MELD Banker NFT</h2>
+      <h2 className="text-2xl font-bold mb-4">Meld Banker NFT Token Checker</h2><h3>You must hold at least 1 MELD Banker NFT</h3>
       <div className="flex gap-2 mb-4">
         <button 
           onClick={connectWallet}

@@ -1,4 +1,16 @@
 body {
+  /* Background animation */
+  background: linear-gradient(270deg, #77dbb3, #f3e55b, #9ddc70, #bf7691);
+  background-size: 400% 400%;
+  animation: gradientAnimation 240s ease infinite;
+  
+  /* Ensure the background covers the entire area */
+
+  background-repeat: no-repeat;
+  height: 100vh;
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+
   display: flex;
   justify-content: center;   /* Centers horizontally */
   align-items: center;       /* Centers vertically */
@@ -7,6 +19,19 @@ body {
   font-family: 'Inter';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Define keyframes for the gradient animation */
+@keyframes gradientAnimation {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
 
