@@ -33,7 +33,7 @@ function App() {
             <button onClick={() => handleClick('BankerNFT')} className="flat-button">Banker NFT</button>
           </>
         ) : (
-          <p>Please open this page in a desktop browser to access the MELD and Banker NFT checkers.</p>
+          <p>Please open this page in a desktop browser to access the checkers.</p>
         )}
       </header>
       <main>
