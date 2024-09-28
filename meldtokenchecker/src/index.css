@@ -1,7 +1,7 @@
 body {
   /* Background animation */
-  background: linear-gradient(270deg, #77dbb3, #f3e55b, #9ddc70, #bf7691);
-  background-size: 400% 400%;
+  background: linear-gradient(180deg, #8c8c8c, #b0b0b0, #d3d3d3);
+  background-size: 200% 200%;
   animation: gradientAnimation 240s ease infinite;
   
   /* Ensure the background covers the entire area */
@@ -16,7 +16,7 @@ body {
   align-items: center;       /* Centers vertically */
   height: 100vh;             /* Full height of the viewport */
   margin: 0;
-  font-family: 'Inter';
+
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -43,25 +43,58 @@ body {
 }
 
 .flat-button {
-  background-color: #007bff;
+  background-color: #2e2e2e;
   color: white;
   border: none;
   padding: 10px 20px;
   border-radius: 5px;
+  border: 3px solid, #d3d3d3;
   cursor: pointer;
-  font-size: 16px;
+  font-size: 26px;
   transition: background-color 0.3s ease;
   margin-left: 10px;
+  font-family: Ubuntu Mono;
 }
 
 .flat-button:hover {
-  background-color: #0056b3;
+  background-color: #212121;
 }
 
 .flat-button:active {
-  background-color: #004080;
+  background-color: #101010;
 }
 
 .flat-button:focus {
   outline: none;
+}
+
+.info-box {
+  font-size: 20px;
+  background-color: rgba(255, 255, 255, 0.2); /* White with 0.2 opacity */
+  padding: 20px; /* Adds space inside the div */
+  border-radius: 10px; /* Smooth edges */
+  max-width: 600px; /* Limits the width */
+  margin: 20px auto; /* Centers the div horizontally */
+  color: #000; /* Ensures text color is legible */
+}
+
+h1 
+{
+  font-size: 40px;
+  font-family: Cinzel;
+}
+
+p 
+{
+  font-family: Saira Condensed;
+}
+
+h2
+{
+ font-family: Sora;
+}
+
+h3
+{
+ font-family: Urbanist;
 }
