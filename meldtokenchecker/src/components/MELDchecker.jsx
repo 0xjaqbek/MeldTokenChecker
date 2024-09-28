@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { ethers } from 'ethers';
+import Web3Modal from "web3modal";
+import WalletConnectProvider from "@walletconnect/web3-provider";
+import CoinbaseWalletSDK from "@coinbase/wallet-sdk";
 import { Alert, AlertDescription } from "./ui/alert";
-import { db } from './firebaseConfig'; // Import your Firebase configuration
+import { db } from './firebaseConfig';
 import { collection, addDoc } from 'firebase/firestore';
 
-// ABI for ERC20 token balance checking
 const minABI = [
   {
     constant: true,
@@ -15,7 +17,6 @@ const minABI = [
   },
 ];
 
-// Check if running in Telegram WebApp
 const isTelegramWebApp = () => {
   return typeof window.Telegram !== 'undefined' && window.Telegram.WebApp !== undefined;
 };
@@ -29,21 +30,48 @@ const MeldTokenChecker = () => {
   const [error, setError] = useState('');
   const [isWalletConnected, setIsWalletConnected] = useState(false);
   const [inviteLink, setInviteLink] = useState('');
-  const [showLink, setShowLink] = useState(false); // To control when to show the invite link
+  const [showLink, setShowLink] = useState(false);
+  const [web3Modal, setWeb3Modal] = useState(null);
 
   useEffect(() => {
-    // Inject the Telegram login script
+    const providerOptions = {
+      walletconnect: {
+        package: WalletConnectProvider,
+        options: {
+          rpc: {
+            324229530: 'https://subnets.avax.network/meld/mainnet/rpc'
+          },
+        }
+      },
+      coinbasewallet: {
+        package: CoinbaseWalletSDK,
+        options: {
+          appName: "Meld Token Checker",
+          rpc: 'https://subnets.avax.network/meld/mainnet/rpc',
+          chainId: 324229530,
+        }
+      }
+    };
+
+    const newWeb3Modal = new Web3Modal({
+      network: "meld",
+      cacheProvider: true,
+      providerOptions
+    });
+
+    setWeb3Modal(newWeb3Modal);
+
+    // Telegram login script
     const script = document.createElement('script');
     script.src = "https://telegram.org/js/telegram-widget.js?15";
-    script.setAttribute('data-telegram-login', 'getDataForMeldBot'); // Change this to your actual bot username
+    script.setAttribute('data-telegram-login', 'getDataForMeldBot');
     script.setAttribute('data-size', 'large');
     script.setAttribute('data-radius', '5');
-    script.setAttribute('data-auth-url', 'https://0xjaqbek.github.io/MeldTokenChecker/'); // Adjust this URL
+    script.setAttribute('data-auth-url', 'https://0xjaqbek.github.io/MeldTokenChecker/');
     script.setAttribute('data-onauth', 'onTelegramAuth(user)');
     script.async = true;
     document.getElementById('telegram-button-container').appendChild(script);
     
-    // Make the onTelegramAuth function available globally
     window.onTelegramAuth = (user) => {
       if (user) {
         setTelegramUsername(user.username);
@@ -54,35 +82,31 @@ const MeldTokenChecker = () => {
     };
 
     checkWalletConnection();
-}, []);
+  }, []);
 
   const checkWalletConnection = async () => {
-    if (typeof window.ethereum !== 'undefined') {
-      const accounts = await window.ethereum.request({ method: 'eth_accounts' });
-      if (accounts.length > 0) {
-        setIsWalletConnected(true);
-        setAddress(accounts[0]);
-      }
+    if (web3Modal && web3Modal.cachedProvider) {
+      connectWallet();
     }
   };
 
   const connectWallet = async () => {
-    if (typeof window.ethereum !== 'undefined') {
-      try {
-        if (isTelegramWebApp()) {
-          // Open wallet connection in external browser
-          window.Telegram.WebApp.openLink('https://metamask.app.link/dapp/' + window.location.host + window.location.pathname);
-        } else {
-          const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-          setIsWalletConnected(true);
-          setAddress(accounts[0]);
-        }
-        setError('');
-      } catch (err) {
-        setError('Failed to connect wallet: ' + err.message);
+    try {
+      if (isTelegramWebApp()) {
+        // Open wallet connection in external browser
+        window.Telegram.WebApp.openLink('https://metamask.app.link/dapp/' + window.location.host + window.location.pathname);
+      } else {
+        const provider = await web3Modal.connect();
+        const ethersProvider = new ethers.providers.Web3Provider(provider);
+        const signer = ethersProvider.getSigner();
+        const address = await signer.getAddress();
+        
+        setIsWalletConnected(true);
+        setAddress(address);
       }
-    } else {
-      setError('Please install MetaMask!');
+      setError('');
+    } catch (err) {
+      setError('Failed to connect wallet: ' + err.message);
     }
   };
 
@@ -119,13 +143,12 @@ const MeldTokenChecker = () => {
 
     try {
       const provider = new ethers.providers.JsonRpcProvider('https://subnets.avax.network/meld/mainnet/rpc');
-      const tokenAddress = '0x333000333528b1e38884a5d1EF13615B0C17a301';  // Updated contract address
+      const tokenAddress = '0x333000333528b1e38884a5d1EF13615B0C17a301';
       const contract = new ethers.Contract(tokenAddress, minABI, provider);
       
       const balance = await contract.balanceOf(address);
       
-      // Check if the balance is greater than or equal to 5,000,000 tokens
-      const requiredBalance = ethers.utils.parseUnits('5000000', 18);  // Assuming 18 decimal places
+      const requiredBalance = ethers.utils.parseUnits('5000000', 18);
       const eligible = balance.gte(requiredBalance);
       
       setIsEligible(eligible);
@@ -152,7 +175,6 @@ const MeldTokenChecker = () => {
   const saveData = async () => {
     if (telegramUsername) {
       try {
-        // Add a new document to the "users" collection
         await addDoc(collection(db, "users"), {
           walletAddress: address,
           telegramUsername: telegramUsername,
@@ -161,7 +183,7 @@ const MeldTokenChecker = () => {
         });
   
         console.log('Data saved to Firebase!');
-        setShowLink(true); // Show the invite link after data is saved
+        setShowLink(true);
       } catch (error) {
         console.error('Error saving data to Firebase:', error);
       }
@@ -172,14 +194,15 @@ const MeldTokenChecker = () => {
 
   return (
     <div className="p-4 max-w-md mx-auto">
-      <h2 className="text-2xl font-bold mb-4">$MELD Token Checker</h2><h3>You must hold at least 5,000,000 $MELD</h3>
+      <h2 className="text-2xl font-bold mb-4">$MELD Token Checker</h2>
+      <h3>You must hold at least 5,000,000 $MELD</h3>
       <div className="flex gap-2 mb-4">
         <button 
           onClick={connectWallet}
           className="flat-button"
         >
           {isWalletConnected ? 'Wallet Connected' : 'Connect Wallet'}
-        </button><br></br><br></br>
+        </button>
         <button 
           onClick={addMeldNetwork}
           className="flat-button"
@@ -187,18 +210,14 @@ const MeldTokenChecker = () => {
           Add MELD Network
         </button>
       </div>
-      <br></br>
-      {/* Telegram Login Button Container */}
       <div id="telegram-button-container" className="mb-4"></div>
-      <br></br>
       <input
         type="text"
         value={address}
         readOnly
-        placeholder="Enter address to check"
+        placeholder="Connected wallet address"
         className="w-full p-2 border rounded mb-4"
       />
-<br></br><br></br>
       <button 
         onClick={checkEligibility}
         disabled={isLoading}
@@ -206,35 +225,30 @@ const MeldTokenChecker = () => {
       >
         {isLoading ? 'Checking...' : 'Check Eligibility'}
       </button>
-      <br></br>
       {error && (
         <Alert variant="destructive">
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
-
       {isEligible !== null && (
         <Alert variant={isEligible ? "default" : "destructive"}>
           <AlertDescription>
-          {isEligible ? (
+            {isEligible ? (
               <>
-                You are eligible! <br />
-                {/* Show Telegram username input and Save Data button if eligible */}
+                You are eligible!
                 <input
                   type="text"
                   value={telegramUsername}
                   readOnly
-                  placeholder="Paste Telegram user name and click save"
+                  placeholder="Telegram username"
                   className="w-full p-2 border rounded mb-4"
-                /><br></br>
+                />
                 <button 
                   onClick={saveData}
                   className="flat-button"
                 >
                   Get invite link
                 </button>
-                <br></br>
-                {/* Show the invite link after Save Data is clicked */}
                 {showLink && (
                   <a href={inviteLink} className="text-blue-500 underline" target="_blank" rel="noopener noreferrer">
                     Click here to join the Telegram group
