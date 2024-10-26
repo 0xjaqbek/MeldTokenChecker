@@ -33,10 +33,9 @@
     "stream-http": "^3.2.0",
     "tailwind-merge": "^2.5.2",
     "url": "^0.11.4",
-<<<<<<< HEAD
-=======
+
     "util": "^0.12.5",
->>>>>>> dd5d4a4fa28202cc9f6e7dab3f0d376c53eacd71
+
     "web-vitals": "^2.1.4",
     "web3modal": "^1.9.12"
   },
@@ -68,13 +67,12 @@
     ]
   },
   "devDependencies": {
-<<<<<<< HEAD
     "gh-pages": "^6.1.1",
-    "webpack": "^5.95.0"
-=======
+    "webpack": "^5.95.0",
+
     "customize-cra": "^1.0.0",
     "gh-pages": "^6.1.1",
     "react-app-rewired": "^2.2.1"
->>>>>>> dd5d4a4fa28202cc9f6e7dab3f0d376c53eacd71
+
   }
 }
