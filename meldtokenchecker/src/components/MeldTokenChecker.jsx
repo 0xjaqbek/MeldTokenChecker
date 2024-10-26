@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { ethers } from 'ethers';
+import Web3Modal from "web3modal";
+import WalletConnectProvider from "@walletconnect/web3-provider";
 import { Alert, AlertDescription } from "./ui/alert";
-import { db } from './firebaseConfig'; // Import your Firebase configuration
+import { db } from './firebaseConfig';
 import { collection, addDoc } from 'firebase/firestore';
 
-// ABI for ERC20 token balance checking
 const minABI = [
   {
     constant: true,
@@ -15,6 +16,18 @@ const minABI = [
   },
 ];
 
+const MELD_NETWORK = {
+  chainId: '0x13d92e8d',  // Correct format as a string
+  chainName: 'Meld',
+  nativeCurrency: {
+    name: 'gMELD',
+    symbol: 'gMELD',
+    decimals: 18
+  },
+  rpcUrls: ['https://subnets.avax.network/meld/mainnet/rpc'],
+  blockExplorerUrls: ['https://meldscan.io']
+};
+
 const MeldTokenChecker = () => {
   const [address, setAddress] = useState('');
   const [telegramUsername, setTelegramUsername] = useState('');
@@ -23,22 +36,56 @@ const MeldTokenChecker = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [isWalletConnected, setIsWalletConnected] = useState(false);
+  const [showLink, setShowLink] = useState(false);
   const [inviteLink, setInviteLink] = useState('');
-  const [showLink, setShowLink] = useState(false); // To control when to show the invite link
+  const [web3Modal, setWeb3Modal] = useState(null);
+  const [showMeldNetworkModal, setShowMeldNetworkModal] = useState(false);
+  const [wcUri, setWcUri] = useState('');
 
   useEffect(() => {
-    // Inject the Telegram login script
+    const providerOptions = {
+      walletconnect: {
+        package: WalletConnectProvider,
+        options: {
+          rpc: {
+            [parseInt(MELD_NETWORK.chainId, 16)]: MELD_NETWORK.rpcUrls[0]
+          },
+          bridge: "https://bridge.walletconnect.org",
+          qrcodeModalOptions: {
+            desktopLinks: [],
+            mobileLinks: []
+          }
+        },
+      },
+      injected: {
+        display: {
+          name: "Metamask",
+          description: "Connect with the provider in your Browser"
+        },
+        package: null
+      },
+    };
+
+    const newWeb3Modal = new Web3Modal({
+      cacheProvider: false,
+      providerOptions,
+      theme: "dark",
+      disableInjectedProvider: false,
+    });
+
+    setWeb3Modal(newWeb3Modal);
+
+    // Telegram login script injection
     const script = document.createElement('script');
     script.src = "https://telegram.org/js/telegram-widget.js?15";
-    script.setAttribute('data-telegram-login', 'getDataForMeldBot'); // Change this to your actual bot username
+    script.setAttribute('data-telegram-login', 'getDataForMeldBot');
     script.setAttribute('data-size', 'large');
     script.setAttribute('data-radius', '5');
-    script.setAttribute('data-auth-url', 'https://0xjaqbek.github.io/MeldTokenChecker/'); // Adjust this URL
+    script.setAttribute('data-auth-url', 'https://0xjaqbek.github.io/MeldTokenChecker/');
     script.setAttribute('data-onauth', 'onTelegramAuth(user)');
     script.async = true;
     document.getElementById('telegram-button-container').appendChild(script);
-    
-    // Make the onTelegramAuth function available globally
+
     window.onTelegramAuth = (user) => {
       if (user) {
         setTelegramUsername(user.username);
@@ -47,58 +94,69 @@ const MeldTokenChecker = () => {
         console.log('Telegram User ID:', user.id);
       }
     };
-
-    checkWalletConnection();
-}, []);
-
-  const checkWalletConnection = async () => {
-    if (typeof window.ethereum !== 'undefined') {
-      const accounts = await window.ethereum.request({ method: 'eth_accounts' });
-      if (accounts.length > 0) {
-        setIsWalletConnected(true);
-        setAddress(accounts[0]);
-      }
-    }
-  };
+  }, []);
 
   const connectWallet = async () => {
-    if (typeof window.ethereum !== 'undefined') {
-      try {
-        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+    try {
+      const provider = await web3Modal.connect();
+      console.log('Connected Provider:', provider);
+      if (!provider) throw new Error("Provider not found.");
+      
+      const ethersProvider = new ethers.providers.Web3Provider(provider);
+      const network = await ethersProvider.getNetwork();
+
+      if (network.chainId !== parseInt(MELD_NETWORK.chainId, 16)) {
+        setShowMeldNetworkModal(true);
+      } else {
+        const signer = ethersProvider.getSigner();
+        const address = await signer.getAddress();
+
         setIsWalletConnected(true);
-        setAddress(accounts[0]);
+        setAddress(address);
         setError('');
-      } catch (err) {
-        setError('Failed to connect wallet: ' + err.message);
       }
-    } else {
-      setError('Please install MetaMask!');
+
+      // Subscribe to connection events
+      provider.on("connect", (info) => {
+        console.log('Connected:', info);
+      });
+
+      provider.on("disconnect", (error) => {
+        console.log('Disconnected:', error);
+        setIsWalletConnected(false);
+        setAddress('');
+      });
+
+      // If it's a WalletConnect provider, log the URI
+      if (provider.wc) {
+        console.log('WalletConnect URI:', provider.wc.uri);
+        setWcUri(provider.wc.uri);
+      }
+
+    } catch (err) {
+      console.error('Connection Error:', err);
+      setError('Failed to connect wallet: ' + err.message);
+      
+      // Additional error handling
+      if (err.message.includes('User closed modal')) {
+        setError('Connection cancelled by user');
+      } else if (err.message.includes('Cannot establish connection')) {
+        setError('Cannot establish connection to WalletConnect. Please try again or use a different wallet.');
+      }
     }
   };
 
-  const addMeldNetwork = async () => {
-    if (typeof window.ethereum !== 'undefined') {
-      try {
-        await window.ethereum.request({
-          method: 'wallet_addEthereumChain',
-          params: [{
-            chainId: '0x13d92e8d',
-            chainName: 'Meld',
-            nativeCurrency: {
-              name: 'gMELD',
-              symbol: 'gMELD',
-              decimals: 18
-            },
-            rpcUrls: ['https://subnets.avax.network/meld/mainnet/rpc'],
-            blockExplorerUrls: ['https://meldscan.io']
-          }]
-        });
-        setError('');
-      } catch (addError) {
-        setError('Failed to add Meld network: ' + addError.message);
-      }
-    } else {
-      setError('Please install MetaMask!');
+  const switchToMeldNetwork = async () => {
+    try {
+      const provider = await web3Modal.connect();
+      await provider.request({
+        method: 'wallet_addEthereumChain',
+        params: [MELD_NETWORK],
+      });
+
+      setShowMeldNetworkModal(false);  // Close the modal after successful switch
+    } catch (err) {
+      setError('Failed to switch to the Meld network: ' + err.message);
     }
   };
 
@@ -113,7 +171,7 @@ const MeldTokenChecker = () => {
       const contract = new ethers.Contract(tokenAddress, minABI, provider);
       const balance = await contract.balanceOf(address);
       
-      const eligible = balance.gt(0);  // Eligibility condition
+      const eligible = balance.gt(0);
       setIsEligible(eligible);
 
       if (eligible) {
@@ -138,7 +196,6 @@ const MeldTokenChecker = () => {
   const saveData = async () => {
     if (telegramUsername) {
       try {
-        // Add a new document to the "users" collection
         await addDoc(collection(db, "users"), {
           walletAddress: address,
           telegramUsername: telegramUsername,
@@ -147,7 +204,7 @@ const MeldTokenChecker = () => {
         });
   
         console.log('Data saved to Firebase!');
-        setShowLink(true); // Show the invite link after data is saved
+        setShowLink(true);
       } catch (error) {
         console.error('Error saving data to Firebase:', error);
       }
@@ -158,25 +215,30 @@ const MeldTokenChecker = () => {
 
   return (
     <div className="p-4 max-w-md mx-auto">
-      <h2 className="text-2xl font-bold mb-4">Meld Banker NFT Token Checker</h2><h3>You must hold at least 1 MELD Banker NFT</h3>
+      <h2 className="text-2xl font-bold mb-4">Meld Banker NFT Token Checker</h2>
+      <h3>You must hold at least 1 MELD Banker NFT</h3>
       <div className="flex gap-2 mb-4">
         <button 
           onClick={connectWallet}
           className="flat-button"
         >
           {isWalletConnected ? 'Wallet Connected' : 'Connect Wallet'}
-        </button><br></br><br></br>
-        <button 
-          onClick={addMeldNetwork}
-          className="flat-button"
-        >
-          Add MELD Network
         </button>
       </div>
-      <br></br>
-      {/* Telegram Login Button Container */}
+      {wcUri && (
+        <div className="mt-4">
+          <h4>WalletConnect URI (for debugging):</h4>
+          <textarea 
+            value={wcUri} 
+            readOnly 
+            className="w-full p-2 border rounded"
+            rows={4}
+          />
+        </div>
+      )}
+      <br />
       <div id="telegram-button-container" className="mb-4"></div>
-      <br></br>
+      <br />
       <input
         type="text"
         value={address}
@@ -184,7 +246,7 @@ const MeldTokenChecker = () => {
         placeholder="Enter address to check"
         className="w-full p-2 border rounded mb-4"
       />
-<br></br><br></br>
+      <br /><br />
       <button 
         onClick={checkEligibility}
         disabled={isLoading}
@@ -192,7 +254,7 @@ const MeldTokenChecker = () => {
       >
         {isLoading ? 'Checking...' : 'Check Eligibility'}
       </button>
-      <br></br>
+      <br />
       {error && (
         <Alert variant="destructive">
           <AlertDescription>{error}</AlertDescription>
@@ -205,21 +267,19 @@ const MeldTokenChecker = () => {
             {isEligible ? (
               <>
                 You are eligible! <br />
-                {/* Show Telegram username input and Save Data button if eligible */}
                 <input
                   type="text"
                   value={telegramUsername}
                   readOnly
                   placeholder="Paste Telegram user name and click save"
                   className="w-full p-2 border rounded mb-4"
-                /><br></br>
+                /><br />
                 <button 
                   onClick={saveData}
                   className="flat-button"
                 >
                   Get invite link
-                </button><br></br>
-                {/* Show the invite link after Save Data is clicked */}
+                </button><br />
                 {showLink && (
                   <a href={inviteLink} className="text-blue-500 underline" target="_blank" rel="noopener noreferrer">
                     Click here to join the Telegram group
@@ -231,6 +291,17 @@ const MeldTokenChecker = () => {
             )}
           </AlertDescription>
         </Alert>
+      )}
+
+      {showMeldNetworkModal && (
+        <div className="modal">
+          <div className="modal-content">
+            <h3>Switch to Meld Network</h3>
+            <p>Your wallet is not connected to the Meld network. Would you like to switch?</p>
+            <button onClick={switchToMeldNetwork} className="flat-button">Switch to Meld Network</button>
+            <button onClick={() => setShowMeldNetworkModal(false)} className="flat-button">Cancel</button>
+          </div>
+        </div>
       )}
     </div>
   );

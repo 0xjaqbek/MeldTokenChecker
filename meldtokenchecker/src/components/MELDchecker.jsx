@@ -1,8 +1,45 @@
 import React, { useState, useEffect } from 'react';
 import { ethers } from 'ethers';
 import { Alert, AlertDescription } from "./ui/alert";
-import { db } from './firebaseConfig'; // Import your Firebase configuration
+import { createWeb3Modal, defaultWagmiConfig } from '@web3modal/wagmi/react';
+import { WagmiConfig, useAccount, useConnect, useDisconnect, useNetwork, useSwitchNetwork } from 'wagmi';
+import { mainnet } from 'wagmi/chains';
+import { db } from './firebaseConfig';
 import { collection, addDoc } from 'firebase/firestore';
+
+// Define the MELD chain
+const meldChain = {
+  id: 333000333,
+  name: 'Meld',
+  network: 'meld',
+  nativeCurrency: {
+    decimals: 18,
+    name: 'gMELD',
+    symbol: 'gMELD',
+  },
+  rpcUrls: {
+    default: { http: ['https://subnets.avax.network/meld/mainnet/rpc'] },
+    public: { http: ['https://subnets.avax.network/meld/mainnet/rpc'] },
+  },
+  blockExplorers: {
+    default: { name: 'MeldScan', url: 'https://meldscan.io' },
+  }
+};
+
+// Configure Web3Modal
+const projectId = 'YOUR_WALLETCONNECT_PROJECT_ID'; // Get this from cloud.walletconnect.com
+
+const metadata = {
+  name: 'Meld Token Checker',
+  description: 'Check your MELD token eligibility',
+  url: 'https://your-website.com',
+  icons: ['https://avatars.githubusercontent.com/u/37784886']
+};
+
+const chains = [mainnet, meldChain];
+const wagmiConfig = defaultWagmiConfig({ chains, projectId, metadata });
+
+createWeb3Modal({ wagmiConfig, projectId, chains });
 
 // ABI for ERC20 token balance checking
 const minABI = [
@@ -15,124 +52,78 @@ const minABI = [
   },
 ];
 
-// Check if running in Telegram WebApp
-const isTelegramWebApp = () => {
-  return typeof window.Telegram !== 'undefined' && window.Telegram.WebApp !== undefined;
-};
-
 const MeldTokenChecker = () => {
-  const [address, setAddress] = useState('');
+  const { address, isConnected } = useAccount();
+  const { chain } = useNetwork();
+  const { switchNetwork } = useSwitchNetwork();
+  const { disconnect } = useDisconnect();
+  
   const [telegramUsername, setTelegramUsername] = useState('');
   const [telegramUserId, setTelegramUserId] = useState('');
   const [isEligible, setIsEligible] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const [isWalletConnected, setIsWalletConnected] = useState(false);
   const [inviteLink, setInviteLink] = useState('');
-  const [showLink, setShowLink] = useState(false); // To control when to show the invite link
+  const [showLink, setShowLink] = useState(false);
 
   useEffect(() => {
     // Inject the Telegram login script
     const script = document.createElement('script');
     script.src = "https://telegram.org/js/telegram-widget.js?15";
-    script.setAttribute('data-telegram-login', 'getDataForMeldBot'); // Change this to your actual bot username
+    script.setAttribute('data-telegram-login', 'getDataForMeldBot');
     script.setAttribute('data-size', 'large');
     script.setAttribute('data-radius', '5');
-    script.setAttribute('data-auth-url', 'https://0xjaqbek.github.io/MeldTokenChecker/'); // Adjust this URL
+    script.setAttribute('data-auth-url', 'https://0xjaqbek.github.io/MeldTokenChecker/');
     script.setAttribute('data-onauth', 'onTelegramAuth(user)');
     script.async = true;
     document.getElementById('telegram-button-container').appendChild(script);
     
-    // Make the onTelegramAuth function available globally
     window.onTelegramAuth = (user) => {
       if (user) {
         setTelegramUsername(user.username);
         setTelegramUserId(user.id);
-        console.log('Telegram Username:', user.username);
-        console.log('Telegram User ID:', user.id);
       }
     };
+  }, []);
 
-    checkWalletConnection();
-}, []);
-
-  const checkWalletConnection = async () => {
-    if (typeof window.ethereum !== 'undefined') {
-      const accounts = await window.ethereum.request({ method: 'eth_accounts' });
-      if (accounts.length > 0) {
-        setIsWalletConnected(true);
-        setAddress(accounts[0]);
-      }
-    }
-  };
-
-  const connectWallet = async () => {
-    if (typeof window.ethereum !== 'undefined') {
-      try {
-        if (isTelegramWebApp()) {
-          // Open wallet connection in external browser
-          window.Telegram.WebApp.openLink('https://metamask.app.link/dapp/' + window.location.host + window.location.pathname);
-        } else {
-          const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-          setIsWalletConnected(true);
-          setAddress(accounts[0]);
-        }
-        setError('');
-      } catch (err) {
-        setError('Failed to connect wallet: ' + err.message);
-      }
-    } else {
-      setError('Please install MetaMask!');
-    }
-  };
-
-  const addMeldNetwork = async () => {
-    if (typeof window.ethereum !== 'undefined') {
-      try {
-        await window.ethereum.request({
-          method: 'wallet_addEthereumChain',
-          params: [{
-            chainId: '0x13d92e8d',
-            chainName: 'Meld',
-            nativeCurrency: {
-              name: 'gMELD',
-              symbol: 'gMELD',
-              decimals: 18
-            },
-            rpcUrls: ['https://subnets.avax.network/meld/mainnet/rpc'],
-            blockExplorerUrls: ['https://meldscan.io']
-          }]
-        });
-        setError('');
-      } catch (addError) {
-        setError('Failed to add Meld network: ' + addError.message);
-      }
-    } else {
-      setError('Please install MetaMask!');
+  const switchToMeldNetwork = async () => {
+    try {
+      await switchNetwork(meldChain.id);
+      setError('');
+    } catch (err) {
+      setError('Failed to switch to MELD network: ' + err.message);
     }
   };
 
   const checkEligibility = async () => {
+    if (!isConnected) {
+      setError('Please connect your wallet first');
+      return;
+    }
+
+    if (chain?.id !== meldChain.id) {
+      setError('Please switch to MELD network first');
+      return;
+    }
+
     setIsLoading(true);
     setError('');
     setIsEligible(null);
 
     try {
       const provider = new ethers.providers.JsonRpcProvider('https://subnets.avax.network/meld/mainnet/rpc');
-      const tokenAddress = '0x333000333528b1e38884a5d1EF13615B0C17a301';  // Updated contract address
+      const tokenAddress = '0x333000333528b1e38884a5d1EF13615B0C17a301';
       const contract = new ethers.Contract(tokenAddress, minABI, provider);
       
       const balance = await contract.balanceOf(address);
-      
-      // Check if the balance is greater than or equal to 5,000,000 tokens
-      const requiredBalance = ethers.utils.parseUnits('5000000', 18);  // Assuming 18 decimal places
+      const requiredBalance = ethers.utils.parseUnits('5000000', 18);
       const eligible = balance.gte(requiredBalance);
       
       setIsEligible(eligible);
 
       if (eligible) {
         try {
-          const response = await fetch('https://tokengate-8acc7ede28d5.herokuapp.com/generate-link');  
+          const response = await fetch('https://tokengate-8acc7ede28d5.herokuapp.com/generate-link');
           if (!response.ok) {
             throw new Error('Failed to get invite link from the server');
           }
@@ -152,97 +143,97 @@ const MeldTokenChecker = () => {
   const saveData = async () => {
     if (telegramUsername) {
       try {
-        // Add a new document to the "users" collection
         await addDoc(collection(db, "users"), {
           walletAddress: address,
           telegramUsername: telegramUsername,
           telegramUserId: telegramUserId,
           timestamp: new Date()
         });
-  
-        console.log('Data saved to Firebase!');
-        setShowLink(true); // Show the invite link after data is saved
+        setShowLink(true);
       } catch (error) {
-        console.error('Error saving data to Firebase:', error);
+        setError('Error saving data: ' + error.message);
       }
     } else {
-      console.log('Please enter your Telegram username.');
+      setError('Please connect with Telegram first');
     }
   };
 
   return (
     <div className="p-4 max-w-md mx-auto">
-      <h2 className="text-2xl font-bold mb-4">$MELD Token Checker</h2><h3>You must hold at least 5,000,000 $MELD</h3>
-      <div className="flex gap-2 mb-4">
-        <button 
-          onClick={connectWallet}
-          className="flat-button"
-        >
-          {isWalletConnected ? 'Wallet Connected' : 'Connect Wallet'}
-        </button><br></br><br></br>
-        <button 
-          onClick={addMeldNetwork}
-          className="flat-button"
-        >
-          Add MELD Network
-        </button>
+      <h2 className="text-2xl font-bold mb-4">$MELD Token Checker</h2>
+      <h3>You must hold at least 5,000,000 $MELD</h3>
+      
+      <div className="flex flex-col gap-4 mb-4">
+        <w3m-button />
+        
+        {isConnected && chain?.id !== meldChain.id && (
+          <button 
+            onClick={switchToMeldNetwork}
+            className="flat-button"
+          >
+            Switch to MELD Network
+          </button>
+        )}
       </div>
-      <br></br>
-      {/* Telegram Login Button Container */}
-      <div id="telegram-button-container" className="mb-4"></div>
-      <br></br>
-      <input
-        type="text"
-        value={address}
-        readOnly
-        placeholder="Enter address to check"
-        className="w-full p-2 border rounded mb-4"
-      />
-<br></br><br></br>
-      <button 
-        onClick={checkEligibility}
-        disabled={isLoading}
-        className="flat-button"
-      >
-        {isLoading ? 'Checking...' : 'Check Eligibility'}
-      </button>
-      <br></br>
+
+      {isConnected && (
+        <>
+          <div className="mb-4">
+            <p className="text-sm text-gray-600">Connected Address:</p>
+            <p className="font-mono break-all">{address}</p>
+          </div>
+
+          <div id="telegram-button-container" className="mb-4" />
+
+          <button 
+            onClick={checkEligibility}
+            disabled={isLoading || chain?.id !== meldChain.id}
+            className="flat-button w-full"
+          >
+            {isLoading ? 'Checking...' : 'Check Eligibility'}
+          </button>
+        </>
+      )}
+
       {error && (
-        <Alert variant="destructive">
+        <Alert variant="destructive" className="mt-4">
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
 
       {isEligible !== null && (
-        <Alert variant={isEligible ? "default" : "destructive"}>
+        <Alert variant={isEligible ? "default" : "destructive"} className="mt-4">
           <AlertDescription>
-          {isEligible ? (
+            {isEligible ? (
               <>
                 You are eligible! <br />
-                {/* Show Telegram username input and Save Data button if eligible */}
                 <input
                   type="text"
                   value={telegramUsername}
                   readOnly
-                  placeholder="Paste Telegram user name and click save"
-                  className="w-full p-2 border rounded mb-4"
-                /><br></br>
+                  placeholder="Connect with Telegram to continue"
+                  className="w-full p-2 border rounded my-4"
+                />
                 <button 
                   onClick={saveData}
-                  className="flat-button"
+                  className="flat-button w-full"
+                  disabled={!telegramUsername}
                 >
                   Get invite link
                 </button>
-                <br></br>
-                {/* Show the invite link after Save Data is clicked */}
-                {showLink && (
-                  <a href={inviteLink} className="text-blue-500 underline" target="_blank" rel="noopener noreferrer">
+                {showLink && inviteLink && (
+                  <a 
+                    href={inviteLink} 
+                    className="block mt-4 text-blue-500 underline text-center" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                  >
                     Click here to join the Telegram group
                   </a>
                 )}
               </>
             ) : (
-              "You are not eligible."
+              "You are not eligible. Minimum requirement: 5,000,000 MELD tokens"
             )}
           </AlertDescription>
         </Alert>
@@ -251,4 +242,13 @@ const MeldTokenChecker = () => {
   );
 };
 
-export default MeldTokenChecker;
+// Wrap the component with WagmiConfig
+const App = () => {
+  return (
+    <WagmiConfig config={wagmiConfig}>
+      <MeldTokenChecker />
+    </WagmiConfig>
+  );
+};
+
+export default App;
